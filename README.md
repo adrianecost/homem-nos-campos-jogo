@@ -7,6 +7,8 @@ Um jogo de suspense e sobrevivência atmosférico desenvolvido com **Three.js**.
 ## Gameplay
 > **ASSISTA AO VÍDEO DA GAMEPLAY ABAIXO:**
 
+https://github.com/user-attachments/assets/0c15df2c-aa3c-44fb-8614-01cc1197f8d7
+
 ---
 
 ## Como Clonar e Rodar o Projeto
