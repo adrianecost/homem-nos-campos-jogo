@@ -18,7 +18,7 @@ Se você deseja baixar este projeto para sua máquina local, siga os passos abai
 ### 1. Clonando o Repositório
 Abra o terminal (ou CMD) no seu computador e digite o comando abaixo:
 ```bash
-git clone [https://github.com/SEU_USUARIO/homem-nos-campos-jogo.git](https://github.com/adrianecost/homem-nos-campos-jogo.git)
+git clone (https://github.com/adrianecost/homem-nos-campos-jogo.git)
 ```
 ---
 
