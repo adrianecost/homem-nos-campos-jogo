@@ -1,0 +1,275 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+
+<head>
+    <meta charset="UTF-8">
+    <title>O Homem nos Campos</title>
+    <style>
+        body {
+            margin: 0;
+            overflow: hidden;
+            background-color: #000;
+            font-family: 'Courier New', monospace;
+            user-select: none;
+        }
+
+        /* --- HUD (Interface do Jogo) --- */
+        #ui-layer {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+        }
+
+        #clock {
+            position: absolute;
+            top: 20px;
+            right: 30px;
+            font-size: 40px;
+            color: #ff3333;
+            font-weight: bold;
+            text-shadow: 2px 2px 0px #000;
+        }
+
+        #stamina-container {
+            position: absolute;
+            bottom: 30px;
+            left: 30px;
+            width: 200px;
+            height: 10px;
+            border: 2px solid #555;
+            background: rgba(0, 0, 0, 0.5);
+            display: none;
+        }
+
+        #stamina-bar {
+            width: 100%;
+            height: 100%;
+            background-color: #fff;
+            transition: width 0.1s;
+        }
+
+        #objective {
+            position: absolute;
+            top: 20px;
+            left: 30px;
+            color: #ccc;
+            font-size: 18px;
+            text-shadow: 1px 1px 0 #000;
+        }
+
+        /* Mira no Centro */
+        #crosshair {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            width: 4px;
+            height: 4px;
+            background: rgba(255, 255, 255, 0.5);
+            border-radius: 50%;
+            transform: translate(-50%, -50%);
+            transition: all 0.2s;
+        }
+
+        /* Fica verde/vermelha quando olha pra algo */
+        .interactive {
+            width: 10px !important;
+            height: 10px !important;
+            background-color: transparent !important;
+            border: 2px solid #ff3333 !important;
+        }
+
+        /* Mensagem de Início */
+        #start-msg {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            color: white;
+            font-size: 24px;
+            text-align: center;
+            animation: piscar 2s infinite;
+            pointer-events: none;
+            text-shadow: 0 0 10px black;
+        }
+
+        @keyframes piscar {
+            0% {
+                opacity: 1;
+            }
+
+            50% {
+                opacity: 0.5;
+            }
+
+            100% {
+                opacity: 1;
+            }
+        }
+
+        /* Telas de Fim de Jogo */
+        .screen {
+            display: none;
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: black;
+            color: white;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            z-index: 1000;
+            pointer-events: auto;
+        }
+
+        #loading {
+            display: flex;
+            background: #111;
+            z-index: 2000;
+        }
+
+        #win-screen h1 {
+            color: #00ff00;
+        }
+
+        #lose-screen h1 {
+            color: #ff0000;
+            font-size: 60px;
+        }
+
+        button {
+            padding: 15px 30px;
+            font-size: 20px;
+            cursor: pointer;
+            margin-top: 20px;
+            background: #333;
+            color: white;
+            border: 1px solid white;
+        }
+
+        button:hover {
+            background: #555;
+        }
+
+        #game-info {
+            position: absolute;
+            bottom: 20px;
+            right: 20px;
+            color: #0f0;
+            background: rgba(0, 0, 0, 0.7);
+            padding: 15px;
+            border-radius: 8px;
+            pointer-events: none;
+            font-family: monospace;
+            z-index: 100;
+        }
+
+        #game-info h3 {
+            margin: 0 0 10px 0;
+            color: white;
+        }
+
+        #game-info p {
+            margin: 5px 0;
+            font-size: 14px;
+        }
+
+        #debug {
+            margin-top: 10px;
+            color: yellow;
+            font-weight: bold;
+        }
+
+        /* Aviso de coisas abertas */
+        #warning-msg {
+            position: absolute;
+            top: 40%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            color: #ff0000;
+            font-size: 24px;
+            font-weight: bold;
+            text-align: center;
+            text-shadow: 2px 2px 0 #000;
+            display: none;
+            z-index: 1500;
+        }
+
+        /* Tela de Olhos Fechados */
+        #sleep-screen {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: black;
+            z-index: 3000;
+            display: none;
+            align-items: center;
+            justify-content: center;
+            color: #fff;
+            font-size: 30px;
+            opacity: 0;
+            transition: opacity 2s;
+        }
+    </style>
+</head>
+
+<body>
+
+    <div id="ui-layer">
+        <div id="objective">Abertos: <span id="open-count">--</span></div>
+        <div id="clock">23:00</div>
+        <div id="stamina-container">
+            <div id="stamina-bar"></div>
+        </div>
+        <div id="start-msg" style="display:none">CLIQUE NA TELA PARA COMEÇAR O RITUAL</div>
+        <div id="warning-msg">AINDA HÁ X COISAS ABERTAS</div>
+    </div>
+
+    <div id="sleep-screen" style="display:none;"></div>
+
+    <div id="game-info">
+        <h3>CONTROLES</h3>
+        <p>W, A, S, D - Andar</p>
+        <p>SHIFT - Correr</p>
+        <p>E - Interagir (Porta/Baú)</p>
+        <p>Clique para jogar</p>
+        <div id="debug">Nada focado</div>
+    </div>
+
+    <div id="crosshair"></div>
+
+    <div id="loading" class="screen">
+        <h1>CARREGANDO...</h1>
+        <p id="load-status" style="color: #888; margin-top: 10px;">0%</p>
+    </div>
+
+    <div id="lose-screen" class="screen">
+        <h1 id="death-reason">VOCÊ MORREU</h1>
+        <button onclick="location.reload()">Tentar Novamente</button>
+    </div>
+
+    <div id="win-screen" class="screen">
+        <h1>Ritual Completo</h1>
+        <p>A casa está segura.</p>
+        <button onclick="location.reload()">Jogar Novamente</button>
+    </div>
+
+    <script type="importmap">
+        {
+            "imports": {
+                "three": "https://unpkg.com/three@0.160.0/build/three.module.js",
+                "three/addons/": "https://unpkg.com/three@0.160.0/examples/jsm/"
+            }
+        }
+    </script>
+
+    <script type="module" src="./Main.js"></script>
+</body>
+
+</html>
